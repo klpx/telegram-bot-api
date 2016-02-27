@@ -522,3 +522,24 @@ type InlineConfig struct {
 	IsPersonal    bool          `json:"is_personal"`
 	NextOffset    string        `json:"next_offset"`
 }
+
+func (config InlineConfig) method() string {
+	return "answerInlineQuery"
+}
+
+func (config InlineConfig) params() (map[string]string, error) {
+	params := url.Values{}
+
+	params.Add("inline_query_id", config.InlineQueryID)
+	params.Add("cache_time", strconv.Itoa(config.CacheTime))
+	params.Add("is_personal", strconv.FormatBool(config.IsPersonal))
+	params.Add("next_offset", config.NextOffset)
+
+	data, err := json.Marshal(config.Results)
+	if err != nil {
+		return v, err
+	}
+	v.Add("results", string(data))
+
+	return params, nil
+}
