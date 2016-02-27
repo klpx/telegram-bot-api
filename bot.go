@@ -64,7 +64,7 @@ func (bot *BotAPI) MakeRequest(endpoint string, params url.Values) (APIResponse,
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusForbidden {
-		return APIResponse{}, errors.New(APIForbidden)
+		return APIResponse{}, errors.New(ErrAPIForbidden)
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
@@ -146,7 +146,7 @@ func (bot *BotAPI) UploadFile(endpoint string, params map[string]string, fieldna
 
 		ms.WriteReader(fieldname, f.Name, int64(len(data)), buf)
 	default:
-		return APIResponse{}, errors.New("bad file type")
+		return APIResponse{}, errors.New(ErrBadFileType)
 	}
 
 	method := fmt.Sprintf(APIEndpoint, bot.Token, endpoint)
@@ -452,10 +452,10 @@ func (bot *BotAPI) GetUpdatesChan(config UpdateConfig) (<-chan Update, error) {
 }
 
 // ListenForWebhook registers a http handler for a webhook.
-func (bot *BotAPI) ListenForWebhook(pattern string) (<-chan Update, http.Handler) {
+func (bot *BotAPI) ListenForWebhook(pattern string) <-chan Update {
 	updatesChan := make(chan Update, 100)
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		bytes, _ := ioutil.ReadAll(r.Body)
 
 		var update Update
@@ -464,9 +464,7 @@ func (bot *BotAPI) ListenForWebhook(pattern string) (<-chan Update, http.Handler
 		updatesChan <- update
 	})
 
-	http.HandleFunc(pattern, handler)
-
-	return updatesChan, handler
+	return updatesChan
 }
 
 // AnswerInlineQuery sends a response to an inline query.
@@ -484,6 +482,8 @@ func (bot *BotAPI) AnswerInlineQuery(config InlineConfig) (APIResponse, error) {
 		return APIResponse{}, err
 	}
 	v.Add("results", string(data))
+
+	bot.debugLog("answerInlineQuery", v, nil)
 
 	return bot.MakeRequest("answerInlineQuery", v)
 }
