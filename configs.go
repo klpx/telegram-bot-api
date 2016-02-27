@@ -537,9 +537,9 @@ func (config InlineConfig) params() (map[string]string, error) {
 
 	data, err := json.Marshal(config.Results)
 	if err != nil {
-		return v, err
+		return params, err
 	}
-	v.Add("results", string(data))
+	params.Add("results", string(data))
 
 	return params, nil
 }
