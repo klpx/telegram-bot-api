@@ -527,7 +527,7 @@ func (config InlineConfig) method() string {
 	return "answerInlineQuery"
 }
 
-func (config InlineConfig) params() (url.Values, error) {
+func (config InlineConfig) values() (url.Values, error) {
 	params := url.Values{}
 
 	params.Add("inline_query_id", config.InlineQueryID)
